@@ -47,13 +47,15 @@ public class HelicopterScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        HandleInputs();
-        Debug.Log(Vector3.up * (_maxThrust * throttleTrue) * _rotorSpeedModifier);
+        // HandleInputs();
+        // Debug.Log(Vector3.up * (_maxThrust * throttleTrue) * _rotorSpeedModifier);
         _rotorsTransform.Rotate(Vector3.up * Mathf.Clamp((_maxThrust * throttleTrue) * _rotorSpeedModifier, 0f, 300f));
+
+        Debug.Log(transform.rotation);
     }
 
     void FixedUpdate()
-    { 
+    {
 
         float brakePower = brakeDrag * Mathf.InverseLerp(ThrottleNeutral, ThrottleMin, throttlePressed);
         float brakeAccel = brakeDrag * brakePower;

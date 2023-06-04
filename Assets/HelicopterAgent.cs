@@ -27,6 +27,8 @@ public class HelicopterAgent : Agent
         initRot = gameObject.transform.rotation;
         
         SetResetParameters();
+
+        Time.timeScale = 100f;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -61,26 +63,32 @@ public class HelicopterAgent : Agent
         jet.GetComponent<HelicopterScript>().Pitch = stickInputX;
         jet.GetComponent<HelicopterScript>().Roll =  stickInputY;
         jet.GetComponent<HelicopterScript>().Yaw =  stickInputZ;
-        // jet.GetComponent<HelicopterScript>().throttleTarget = throttleTarget;
-        jet.GetComponent<HelicopterScript>().throttleTarget = 1f;
+        jet.GetComponent<HelicopterScript>().throttleTarget = throttleTarget;
+        // jet.GetComponent<HelicopterScript>().throttleTarget = 1f;
 
         float distToGoal = Vector3.Distance(transform.position, goalPosition);
         
-        if ((transform.position.y < 2) || ((Time.realtimeSinceStartup - episode_start_time) > 20f)){
-            Debug.Log("Hit the Ground :(");
-            SetReward(-500000f);
+        Debug.Log(transform.position.y);
+
+        if ((Time.realtimeSinceStartup - episode_start_time) > 10f){
+            Debug.Log("Took too long :(");
+            // AddReward(-30000f);
             EndEpisode();
-        } else if (distToGoal < 3f) {
-            SetReward(500000f);
+        } else if (distToGoal < 100) {
+            Debug.Log("Reached Goal!");
+            // AddReward(500);
+            // EndEpisode();
+        } else if (transform.position.y < 5){
+            Debug.Log("Hit the Ground :(");
+            // AddReward(-500000f);
             EndEpisode();
         } else {
-            AddReward(10f * Mathf.Pow(transform.position.y, 2));
-        }
-        
-        if (Mathf.Abs(transform.rotation.x) > 0.5 || Mathf.Abs(transform.rotation.y) > 0.5 || Mathf.Abs(transform.rotation.z) > 0.5) {
-            Debug.Log("Too Much Rotation");
-            SetReward(-500000f);
-            EndEpisode();            
+            // speed + not hitting ground
+            float reward = 0;
+            // reward += 1f * fighterjetRB.velocity.magnitude;
+            // reward -= 1f * distToGoal;
+            reward += 1;
+            AddReward(reward);
         }
 
         // Debug.Log(Mathf.Abs(transform.rotation.x));

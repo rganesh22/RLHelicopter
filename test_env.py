@@ -3,7 +3,7 @@ import gym
 from mlagents_envs.environment import UnityEnvironment
 from gym_unity.envs import UnityToGymWrapper
 
-unity_env = UnityEnvironment("Build/RLHelicopter")
+unity_env = UnityEnvironment("Build/RLHelicopter", worker_id=3)
 env = UnityToGymWrapper(unity_env, uint8_visual=False) 
 
 observation = env.reset()

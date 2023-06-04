@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # env = UnityEnv(env_path, worker_id=2, use_visual=True)
 
     # unity_env = UnityEnvironment("Build/RLHelicopter", no_graphics=True)
-    unity_env = UnityEnvironment("Build/RLHelicopter")
+    unity_env = UnityEnvironment("Build/RLHelicopter", worker_id=3)
     # unity_env = UnityEnvironment("Build/ArcadeJetFlightExample")
     env = UnityToGymWrapper(unity_env, uint8_visual=False) 
 
