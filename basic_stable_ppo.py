@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
 
-    model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=log_dir)
+    model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=log_dir, learning_rate=0.01)
     model.learn(total_timesteps=10000)
 
     #evaluate agent

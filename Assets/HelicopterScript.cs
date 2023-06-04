@@ -6,14 +6,13 @@ public class HelicopterScript : MonoBehaviour
 {
     private Rigidbody _rigidbody;
 
-    [SerializeField] private float _responsiveness = 1f;
-    [SerializeField] private float _throttleAmt = 25f;
-    [SerializeField] private float _maxThrust = 3000f;
+    public float _responsiveness = 500f;
+    public float _maxThrust = 300f;
 
     [Tooltip("How quickly the jet can accelerate and decelerate.")]
-    public float acceleration = 100.0f;
+    public float acceleration = 10.0f;
     [Tooltip("How quickly the jet will brake when the throttle goes below neutral.")]
-    public float brakeDrag = 10.0f;
+    public float brakeDrag = 5f;
 
     public float throttleTarget = 0f;
 
@@ -31,7 +30,7 @@ public class HelicopterScript : MonoBehaviour
     [SerializeField] private float _rotorSpeedModifier = 10f;
     [SerializeField] private Transform _rotorsTransform;
 
-    private const float FORCE_MULT = 100.0f;
+    private const float FORCE_MULT = 10.0f;
 
     private float throttleTrue = 0.33f;
 
@@ -48,9 +47,9 @@ public class HelicopterScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // HandleInputs();
-
-        _rotorsTransform.Rotate(Vector3.up * (_maxThrust * throttleTrue) * _rotorSpeedModifier);
+        HandleInputs();
+        Debug.Log(Vector3.up * (_maxThrust * throttleTrue) * _rotorSpeedModifier);
+        _rotorsTransform.Rotate(Vector3.up * Mathf.Clamp((_maxThrust * throttleTrue) * _rotorSpeedModifier, 0f, 300f));
     }
 
     void FixedUpdate()

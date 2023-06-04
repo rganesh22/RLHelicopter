@@ -66,7 +66,7 @@ public class HelicopterAgent : Agent
 
         float distToGoal = Vector3.Distance(transform.position, goalPosition);
         
-        if ((transform.position.y < 10) || ((Time.realtimeSinceStartup - episode_start_time) > 20f)){
+        if ((transform.position.y < 2) || ((Time.realtimeSinceStartup - episode_start_time) > 20f)){
             Debug.Log("Hit the Ground :(");
             SetReward(-500000f);
             EndEpisode();
@@ -78,14 +78,14 @@ public class HelicopterAgent : Agent
         }
         
         if (Mathf.Abs(transform.rotation.x) > 0.5 || Mathf.Abs(transform.rotation.y) > 0.5 || Mathf.Abs(transform.rotation.z) > 0.5) {
-            Debug.Log("");
+            Debug.Log("Too Much Rotation");
             SetReward(-500000f);
             EndEpisode();            
         }
 
-        Debug.Log(Mathf.Abs(transform.rotation.x));
-        Debug.Log(Mathf.Abs(transform.rotation.y));
-        Debug.Log(Mathf.Abs(transform.rotation.z));
+        // Debug.Log(Mathf.Abs(transform.rotation.x));
+        // Debug.Log(Mathf.Abs(transform.rotation.y));
+        // Debug.Log(Mathf.Abs(transform.rotation.z));
         
         // else if (distToGoal < 2) {
         //     Debug.Log("Reached Goal!");
