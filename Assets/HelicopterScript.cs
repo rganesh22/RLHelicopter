@@ -48,6 +48,7 @@ public class HelicopterScript : MonoBehaviour
     void Update()
     {
         // HandleInputs();
+
         // Debug.Log(Vector3.up * (_maxThrust * throttleTrue) * _rotorSpeedModifier);
         _rotorsTransform.Rotate(Vector3.up * Mathf.Clamp((_maxThrust * throttleTrue) * _rotorSpeedModifier, 0f, 300f));
 

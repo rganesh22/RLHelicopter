@@ -16,14 +16,14 @@ if __name__ == "__main__":
     # env = UnityEnv(env_path, worker_id=2, use_visual=True)
 
     # unity_env = UnityEnvironment("Build/ArcadeJetFlightExample", no_graphics=True)
-    unity_env = UnityEnvironment("Build/RLHelicopter", worker_id=3)
+    unity_env = UnityEnvironment("Build/RLHelicopter", worker_id=4)
     env = UnityToGymWrapper(unity_env, uint8_visual=False) 
 
     # Create log dir
     time_int = int(time.time())
     # Change logdir if you want to make it "no grounding etc." for the kind of reward function we're testing
     # [no_grounding, [point2_target_distance_square, point5_target_distance_linear, etc etc]
-    reward_func = "just_fly"
+    reward_func = "jump_start_from_plane"
     # log_dir = f"stable_results/ppo/{reward_func}/{time_int}"
     log_dir = f"stable_results/ppo/raghavruns/{reward_func}/"
     os.makedirs(log_dir, exist_ok=True)
@@ -31,7 +31,11 @@ if __name__ == "__main__":
 
     env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
 
-    model = PPO("MlpPolicy", env, n_steps=2048, verbose=1, tensorboard_log=log_dir)
+    model = PPO.load('../RLPlane/a_last_step_sep_ppo')
+    model.set_env(env)
+
+    # model = PPO("MlpPolicy", env, n_steps=2048, verbose=1, tensorboard_log=log_dir)
+
     # model = PPO("MlpPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
     # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, verbose=1, tensorboard_log=log_dir)
     # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, gamma=0.95, verbose=1, tensorboard_log=log_dir)
@@ -54,13 +58,15 @@ if __name__ == "__main__":
     # model = DQN("CnnPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
     
     # model.learn(total_timesteps=100000)
-    model.learn(total_timesteps=1000000)
+    model.learn(total_timesteps=300000)
     
     model.save(log_dir+"/model")
     model.save("latest_model")
 
+    env.close()
+
     #evaluate agent
-    eval_unity_env = UnityEnvironment("Eval_Build/RLHelicopter")
+    eval_unity_env = UnityEnvironment("Eval_Build/RLHelicopter", worker_id=5)
     eval_env = UnityToGymWrapper(eval_unity_env, uint8_visual=False) 
 
     episodes = 100
