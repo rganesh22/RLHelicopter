@@ -477,7 +477,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c95e590385037be4c8f755e1c93c61f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _responsiveness: 500
+  _responsiveness: 75
   _maxThrust: 300
   acceleration: 10
   brakeDrag: 5

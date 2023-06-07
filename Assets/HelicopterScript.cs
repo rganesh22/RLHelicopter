@@ -6,7 +6,7 @@ public class HelicopterScript : MonoBehaviour
 {
     private Rigidbody _rigidbody;
 
-    public float _responsiveness = 500f;
+    public float _responsiveness = 75f;
     public float _maxThrust = 300f;
 
     [Tooltip("How quickly the jet can accelerate and decelerate.")]
