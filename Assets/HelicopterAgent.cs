@@ -22,6 +22,8 @@ public class HelicopterAgent : Agent
     {
         fighterjetRB = GetComponent<Rigidbody>();
         goalPosition = GameObject.Find("Goal").transform.position;
+
+        initGoalPosition = goalPosition;
       
         initPos = gameObject.transform.position;
         initRot = gameObject.transform.rotation;
@@ -43,9 +45,10 @@ public class HelicopterAgent : Agent
             sensor.AddObservation(transform.rotation.y);
             sensor.AddObservation(transform.rotation.z);
 
-            sensor.AddObservation(fighterjetRB.velocity.x);
-            sensor.AddObservation(fighterjetRB.velocity.y);
-            sensor.AddObservation(fighterjetRB.velocity.z);
+            sensor.AddObservation(GetComponent<StickInput>().Throttle);
+            sensor.AddObservation(GetComponent<StickInput>().Pitch);
+            sensor.AddObservation(GetComponent<StickInput>().Roll);
+            sensor.AddObservation(GetComponent<StickInput>().Yaw);
 
             sensor.AddObservation((goalPosition - transform.position).x);
             sensor.AddObservation((goalPosition - transform.position).y);
