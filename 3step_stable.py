@@ -16,7 +16,7 @@ if __name__ == "__main__":
     first_basic_env = UnityToGymWrapper(first_unity_env, uint8_visual=False) 
 
     reward_func = "Step1_reward_just_fly"
-    lr = 1e-2
+    lr = 3e-4
     bs = 512
     gamma = 0.99
     log_dir = f"stable_results/ppo/{reward_func}/lr{lr}_batchsize{bs}/"
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     second_basic_env = UnityToGymWrapper(second_unity_env, uint8_visual=False) 
 
     reward_func = "Step2_reward_inplace_target"
-    lr = 1e-3
+    # lr = 1e-3
     log_dir = f"stable_results/ppo/{reward_func}/lr{lr}_batchsize{bs}/"
     os.makedirs(log_dir, exist_ok=True)
     second_env = Monitor(second_basic_env, log_dir, allow_early_resets=True)
