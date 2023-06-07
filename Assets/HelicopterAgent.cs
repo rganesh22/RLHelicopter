@@ -47,9 +47,9 @@ public class HelicopterAgent : Agent
             sensor.AddObservation(transform.rotation.z);
 
             sensor.AddObservation(GetComponent<StickInput>().Throttle);
-            sensor.AddObservation(GetComponent<StickInput>().Pitch);
-            sensor.AddObservation(GetComponent<StickInput>().Roll);
-            sensor.AddObservation(GetComponent<StickInput>().Yaw);
+            sensor.AddObservation(Pitch);
+            sensor.AddObservation(Roll);
+            sensor.AddObservation(Yaw);
 
             sensor.AddObservation((goalPosition - transform.position).x);
             sensor.AddObservation((goalPosition - transform.position).y);
