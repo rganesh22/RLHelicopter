@@ -15,6 +15,7 @@ public class HelicopterAgent : Agent
 
     Vector3 initPos;
     Quaternion initRot;
+    Vector3 initGoalPosition;
 
     private float episode_start_time;
 
