@@ -7,12 +7,13 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 import os
-import time
 import pickle
+import time
+from pathlib import Path
 
 if __name__ == "__main__":
     first_unity_env = UnityEnvironment("Build/FirstEnv", no_graphics=True, worker_id=2)
-    first_env = UnityToGymWrapper(first_unity_env, uint8_visual=False) 
+    first_basic_env = UnityToGymWrapper(first_unity_env, uint8_visual=False) 
 
     reward_func = "Step1_reward_just_fly"
     lr = 1e-2
@@ -20,77 +21,121 @@ if __name__ == "__main__":
     gamma = 0.99
     log_dir = f"stable_results/ppo/{reward_func}/lr{lr}_batchsize{bs}/"
     os.makedirs(log_dir, exist_ok=True)
-    env = Monitor(env, log_dir, allow_early_resets=True)
-    env = DummyVecEnv([lambda: env])  # The algorithms require a vectorized environment to run
-    model = PPO("MlpPolicy", env, learning_rate=lr, batch_size=bs, verbose=1, tensorboard_log=log_dir)
-    model.save(log_dir + "/model")
-    model.save("Step1_reward_just_fly")
-
-
-    model2 = PPO.load('Step1_reward_just_fly')
-    model2.set_env(env)
-    
-    # model = PPO("MlpPolicy", env, n_steps=2048, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=2048, learning_rate=1e-2, gamma=0.95, clip_range=0.5, verbose=1, tensorboard_log=log_dir)
-
-    # model = PPO("MlpPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)    
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, gamma=0.95, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, gamma=0.95, clip_range=0.5, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, batch_size=32, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, batch_size=32, clip_range=0.5, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-2, batch_size=16, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-1, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-1, gamma=0.95, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-1, batch_size=32, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, learning_rate=1e-1, batch_size=16, verbose=1, tensorboard_log=log_dir)
-    # model = PPO("MlpPolicy", env, n_steps=500, batch_size=32, verbose=1, tensorboard_log=log_dir)
-
-    # model = PPO("CnnPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
-
-    # model = DDPG("MlpPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
-    # model = DDPG("CnnPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
-
-    # model = DQN("MlpPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
-    # model = DQN("CnnPolicy", env, n_steps=500, verbose=1, tensorboard_log=log_dir)
-    
-    # model.learn(total_timesteps=100000)
-    # model.learn(total_timesteps=200000)
+    first_env = Monitor(first_basic_env, log_dir, allow_early_resets=True)
+    first_env = DummyVecEnv([lambda: first_env])  # The algorithms require a vectorized environment to run
+    model = PPO("MlpPolicy", first_env, learning_rate=lr, batch_size=bs, verbose=1, tensorboard_log=log_dir)
     model.learn(total_timesteps=70000)
-    
-    model.save(log_dir+"/model")
-    model.save("latest_model")
+    model.save(log_dir + "/model")
+    model.save(reward_func)
+    first_env.close()
 
-    env.close()
-
-    #evaluate agent
-    eval_unity_env = UnityEnvironment("Eval_Build/ArcadeJetFlightExample", worker_id=3)
-    eval_env = UnityToGymWrapper(eval_unity_env, uint8_visual=False) 
+    first_eval_unity_env = UnityEnvironment("Eval_Build/FirstEnv", worker_id=3)
+    first_basic_eval_env = UnityToGymWrapper(first_eval_unity_env, uint8_visual=False) 
 
     episodes = 100
+    success_counter = 0
     ep_r = []
     ep_l = []
+    longfile = Path(f"{log_dir}/longlogs.txt")
+    longfile.touch(exist_ok=True)
+    logfile = Path(f"{log_dir}/readlogs.txt")
+    logfile.touch(exist_ok=True)
+    print(logfile)
+    print(longfile)
     for e in range(episodes):
-        obs = eval_env.reset()
+        obs = first_basic_eval_env.reset()
         total_r = 0.
         total_l = 0.
         while True:
             action, _states = model.predict(obs)
-            obs, reward, done, info = eval_env.step(action)
-            # if e < 20:
-            #     print(f'Observation: {obs} \n')
-            #     print(f'Action: {action} \n\n')
+            obs, reward, done, info = first_basic_eval_env.step(action)
             total_l += 1.
-            total_r += reward
+            if reward == -1:
+                total_r = -1
+            elif reward == 1:
+                total_r = 1
+                success_counter += 1
+            else:
+                total_r += reward
             if done:
                 break
+            with open(longfile, 'a') as file1:
+                file1.write(f"Episode: {e}\n Observation:\n {obs}\n Action:\n {action}\n Action Reward: {reward}, Total Reward: {total_r}, Current Total Length: {total_l} \n\n")
         ep_r.append(total_r)
         ep_l.append(total_l)
-    print("episode mean reward: {:0.3f} mean length: {:0.3f}".format(np.mean(ep_r), np.mean(ep_l)))
+        with open(logfile, 'a') as file2:
+            file2.write(f"Episode: {e}, Total Reward: {total_r}, Total Length: {total_l} \n")
+            if e == episodes - 1:
+                file2.write("Final Episode Success Rate: {:0.3f}".format(success_counter/episodes))
+    print("Episode Mean Reward: {:0.3f}, Mean Length: {:0.3f}, Success Rate: {:0.3f}".format(np.mean(ep_r), np.mean(ep_l), (success_counter/episodes)))
     with open('{}_eval.pkl'.format(log_dir), 'wb') as f:
         pickle.dump(ep_r, f)
         pickle.dump(ep_l, f)
 
-    eval_env.close()
-    # model.save(log_dir+"/model")
-    # model.save("latest_model")
+    first_basic_eval_env.close()
+
+    print("10 seconds to reset, then moving into 2nd learning step")
+    time.sleep(10)
+
+    second_unity_env = UnityEnvironment("Build/SecondEnv", no_graphics=True, worker_id=2)
+    second_basic_env = UnityToGymWrapper(second_unity_env, uint8_visual=False) 
+
+    reward_func = "Step2_reward_inplace_target"
+    log_dir = f"stable_results/ppo/{reward_func}/lr{lr}_batchsize{bs}/"
+    os.makedirs(log_dir, exist_ok=True)
+    second_env = Monitor(second_basic_env, log_dir, allow_early_resets=True)
+    second_env = DummyVecEnv([lambda: second_env])  # The algorithms require a vectorized environment to run
+    model2 = PPO.load("Step1_reward_just_fly")
+    model2.learn(total_timesteps=70000)
+    model2.save(log_dir + "/model")
+    model2.save(reward_func)
+    second_env.close()
+
+    second_eval_unity_env = UnityEnvironment("Eval_Build/FirstEnv", worker_id=3)
+    second_basic_eval_env = UnityToGymWrapper(second_eval_unity_env, uint8_visual=False) 
+
+    episodes = 100
+    success_counter = 0
+    ep_r = []
+    ep_l = []
+    longfile = Path(f"{log_dir}/longlogs.txt")
+    longfile.touch(exist_ok=True)
+    logfile = Path(f"{log_dir}/readlogs.txt")
+    logfile.touch(exist_ok=True)
+    print(logfile)
+    print(longfile)
+    for e in range(episodes):
+        obs = second_basic_eval_env.reset()
+        total_r = 0.
+        total_l = 0.
+        while True:
+            action, _states = model2.predict(obs)
+            obs, reward, done, info = second_basic_eval_env.step(action)
+            total_l += 1.
+            if reward == -1:
+                total_r = -1
+            elif reward == 1:
+                total_r = 1
+                success_counter += 1
+            else:
+                total_r += reward
+            if done:
+                break
+            with open(longfile, 'a') as file1:
+                file1.write(f"Episode: {e}\n Observation:\n {obs}\n Action:\n {action}\n Action Reward: {reward}, Total Reward: {total_r}, Current Total Length: {total_l} \n\n")
+        ep_r.append(total_r)
+        ep_l.append(total_l)
+        with open(logfile, 'a') as file2:
+            file2.write(f"Episode: {e}, Total Reward: {total_r}, Total Length: {total_l} \n")
+            if e == episodes - 1:
+                file2.write("Final Episode Success Rate: {:0.3f}".format(success_counter/episodes))
+    print("Episode Mean Reward: {:0.3f}, Mean Length: {:0.3f}, Success Rate: {:0.3f}".format(np.mean(ep_r), np.mean(ep_l), (success_counter/episodes)))
+    with open('{}_eval.pkl'.format(log_dir), 'wb') as f:
+        pickle.dump(ep_r, f)
+        pickle.dump(ep_l, f)
+
+    second_basic_eval_env.close()
+
+    print("10 seconds to reset, then moving into 2nd learning step")
+    time.sleep(10)
+
