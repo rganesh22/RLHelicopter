@@ -31,7 +31,8 @@ public class HelicopterAgent : Agent
         
         SetResetParameters();
 
-        Time.timeScale = 100f;
+        Time.timeScale = 5f;
+        // Time.timeScale = 100f;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -46,10 +47,10 @@ public class HelicopterAgent : Agent
             sensor.AddObservation(transform.rotation.y);
             sensor.AddObservation(transform.rotation.z);
 
-            sensor.AddObservation(GetComponent<StickInput>().Throttle);
-            sensor.AddObservation(Pitch);
-            sensor.AddObservation(Roll);
-            sensor.AddObservation(Yaw);
+            sensor.AddObservation(GetComponent<HelicopterScript>().throttleTarget);
+            sensor.AddObservation(GetComponent<HelicopterScript>().Pitch);
+            sensor.AddObservation(GetComponent<HelicopterScript>().Roll);
+            sensor.AddObservation(GetComponent<HelicopterScript>().Yaw);
 
             sensor.AddObservation((goalPosition - transform.position).x);
             sensor.AddObservation((goalPosition - transform.position).y);
@@ -74,45 +75,44 @@ public class HelicopterAgent : Agent
         
         Debug.Log(transform.position.y);
 
-        if ((Time.realtimeSinceStartup - episode_start_time) > 10f){
-            Debug.Log("Took too long :(");
-            // AddReward(-30000f);
-            EndEpisode();
-        } else if (distToGoal < 100) {
-            Debug.Log("Reached Goal!");
-            // AddReward(500);
-            // EndEpisode();
-        } else if (transform.position.y < 5){
+        // // [(CL STEP 1) JUST FLY!]
+        // if (transform.position.y < 10){
+        //     Debug.Log("Hit the Ground :(");
+        //     SetReward(-1f);
+        //     EndEpisode();
+        // } else {
+        //     // speed + not hitting ground
+        //     float reward = 0;
+        //     reward += 0.0001f;
+        //     SetReward(reward);
+        //     float cumReward = GetCumulativeReward();
+        //     if (cumReward >= 1f) {
+        //         EndEpisode();
+        //     }
+        // }
+
+        // [(CL STEP 2) HIT TARGET!]
+        // Vector3(-1872.30005,72.3000031,-2044.40002)
+        if (transform.position.y < 10){
             Debug.Log("Hit the Ground :(");
-            // AddReward(-500000f);
+            SetReward(-1f);
+            EndEpisode();
+        } else if (distToGoal < 50) {
+            Debug.Log("Reached Goal!");
+            SetReward(1f);
             EndEpisode();
         } else {
             // speed + not hitting ground
             float reward = 0;
-            // reward += 1f * fighterjetRB.velocity.magnitude;
-            // reward -= 1f * distToGoal;
-            reward += 1;
-            AddReward(reward);
+            reward -= 0.001f * distToGoal;
+            reward += 0.001f;
+            float cumReward = GetCumulativeReward();
+            if (cumReward <= -1f) {
+                EndEpisode();
+            }
+            SetReward(reward);
         }
-
-        // Debug.Log(Mathf.Abs(transform.rotation.x));
-        // Debug.Log(Mathf.Abs(transform.rotation.y));
-        // Debug.Log(Mathf.Abs(transform.rotation.z));
         
-        // else if (distToGoal < 2) {
-        //     Debug.Log("Reached Goal!");
-        //     SetReward(500000f);
-        //     EndEpisode();
-        // } else {
-        //     float reward = -0.1f * distToGoal * distToGoal;
-        //     reward += (1000 * transform.position.y);
-        //     reward += (10 * fighterjetRB.velocity.magnitude);
-        //     // if (transform.rotation.y > 150) {
-        //     //    SetReward(-4000f); 
-        //     // }
-        //     // float reward = 0f;
-        //     SetReward(reward);
-        // }
     }    
 
     public override void OnEpisodeBegin()
@@ -127,5 +127,11 @@ public class HelicopterAgent : Agent
         fighterjetRB.velocity = new Vector3(0, 0, 0);
         transform.position = initPos;
         transform.rotation = initRot;
+
+        // [(CL STEP 3) HIT RANDOM TARGET!]
+        float newX = Random.Range(-80.0f, 80.0f) + initGoalPosition.x;
+        float newY = Mathf.Clamp(Random.Range(-80.0f, 80.0f) + initGoalPosition.y, 40f, float.MaxValue);
+        float newZ = Random.Range(-80.0f, 80.0f) + initGoalPosition.z;
+        GameObject.Find("Goal").transform.position = new Vector3(newX, newY, newZ);
     }
 }

@@ -24,7 +24,7 @@ if __name__ == "__main__":
     first_env = Monitor(first_basic_env, log_dir, allow_early_resets=True)
     first_env = DummyVecEnv([lambda: first_env])  # The algorithms require a vectorized environment to run
     model = PPO("MlpPolicy", first_env, learning_rate=lr, batch_size=bs, verbose=1, tensorboard_log=log_dir)
-    model.learn(total_timesteps=70000)
+    model.learn(total_timesteps=250000)
     model.save(log_dir + "/model")
     model.save(reward_func)
     first_env.close()
@@ -81,17 +81,18 @@ if __name__ == "__main__":
     second_basic_env = UnityToGymWrapper(second_unity_env, uint8_visual=False) 
 
     reward_func = "Step2_reward_inplace_target"
+    lr = 1e-3
     log_dir = f"stable_results/ppo/{reward_func}/lr{lr}_batchsize{bs}/"
     os.makedirs(log_dir, exist_ok=True)
     second_env = Monitor(second_basic_env, log_dir, allow_early_resets=True)
     second_env = DummyVecEnv([lambda: second_env])  # The algorithms require a vectorized environment to run
-    model2 = PPO.load("Step1_reward_just_fly")
+    model2 = PPO.load("Step1_reward_just_fly", env=second_env, learning_rate=lr, batch_size=bs, verbose=1, tensorboard_log=log_dir)
     model2.learn(total_timesteps=70000)
     model2.save(log_dir + "/model")
     model2.save(reward_func)
     second_env.close()
 
-    second_eval_unity_env = UnityEnvironment("Eval_Build/FirstEnv", worker_id=3)
+    second_eval_unity_env = UnityEnvironment("Eval_Build/SecondEnv", worker_id=3)
     second_basic_eval_env = UnityToGymWrapper(second_eval_unity_env, uint8_visual=False) 
 
     episodes = 100
@@ -147,13 +148,13 @@ if __name__ == "__main__":
     os.makedirs(log_dir, exist_ok=True)
     third_env = Monitor(third_basic_env, log_dir, allow_early_resets=True)
     third_env = DummyVecEnv([lambda: third_env])  # The algorithms require a vectorized environment to run
-    model3 = PPO.load("Step2_reward_inplace_target")
+    model3 = PPO.load("Step2_reward_inplace_target", env=third_env, learning_rate=lr, batch_size=bs, verbose=1, tensorboard_log=log_dir)
     model3.learn(total_timesteps=70000)
     model3.save(log_dir + "/model")
     model3.save(reward_func)
     third_env.close()
 
-    third_eval_unity_env = UnityEnvironment("Eval_Build/FirstEnv", worker_id=3)
+    third_eval_unity_env = UnityEnvironment("Eval_Build/ThirdEnv", worker_id=3)
     third_basic_eval_env = UnityToGymWrapper(third_eval_unity_env, uint8_visual=False) 
 
     episodes = 100
